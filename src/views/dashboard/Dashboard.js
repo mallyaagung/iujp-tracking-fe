@@ -203,7 +203,6 @@ const Dashboard = () => {
                       <CTableHeaderCell>No.</CTableHeaderCell>
                       <CTableHeaderCell>Nama User</CTableHeaderCell>
                       <CTableHeaderCell>Nama Perusahaan</CTableHeaderCell>
-                      <CTableHeaderCell>Nama Site / IUP</CTableHeaderCell>
                       <CTableHeaderCell>Triwulan</CTableHeaderCell>
                       <CTableHeaderCell>Tahun</CTableHeaderCell>
                     </CTableRow>
@@ -216,7 +215,6 @@ const Dashboard = () => {
                           <CTableDataCell>{index + 1}</CTableDataCell>
                           <CTableDataCell>{item.username}</CTableDataCell>
                           <CTableDataCell>{item.company_name}</CTableDataCell>
-                          <CTableDataCell>{item.site_name}</CTableDataCell>
                           <CTableDataCell>{item.quarter}</CTableDataCell>
                           <CTableDataCell>{item.year}</CTableDataCell>
                         </CTableRow>

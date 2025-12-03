@@ -23,7 +23,7 @@ const AddUser = ({ visible, closeModal, token, refetch }) => {
     register,
     handleSubmit,
     getValues,
-    setValue,
+    reset,
     formState: { errors },
   } = useForm()
 
@@ -36,6 +36,7 @@ const AddUser = ({ visible, closeModal, token, refetch }) => {
       })
       refetch()
       closeModal()
+      reset()
     },
     onError: (error) => {
       ResponseError(error, dispatch, navigate)

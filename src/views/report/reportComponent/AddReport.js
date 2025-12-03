@@ -35,6 +35,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
     register,
     handleSubmit,
     getValues,
+    reset,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -73,6 +74,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
       })
       refetch()
       closeModal()
+      reset()
     },
     onError: (error) => {
       ResponseError(error, dispatch, navigate)
@@ -153,8 +155,16 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                 <CFormInput {...register(`site_name`)} required />
               </CCol>
               <CCol md={3} className="mb-3">
-                <CFormLabel>Jenis Izin (IUP/IUPK/PKP2B/KK)</CFormLabel>
-                <CFormInput {...register(`permission`)} />
+                <CFormLabel>Jenis Izin</CFormLabel>
+                <CFormSelect
+                  options={[
+                    { label: 'IUP', value: 'IUP' },
+                    { label: 'IUPK', value: 'IUPK' },
+                    { label: 'PKP2B', value: 'PKP2B' },
+                    { label: 'KK', value: 'KK' },
+                  ]}
+                  {...register(`permission`)}
+                />
               </CCol>
               <CCol md={3} className="mb-3">
                 <CFormLabel>Provinsi</CFormLabel>

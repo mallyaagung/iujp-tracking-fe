@@ -191,7 +191,6 @@ const Report = () => {
                       {role === 'ADMIN' && (
                         <>
                           <CTableHeaderCell>Nama User</CTableHeaderCell>
-                          <CTableHeaderCell>Nama Perusahaan</CTableHeaderCell>
                         </>
                       )}
                       <CTableHeaderCell>Nama Site / IUP</CTableHeaderCell>
@@ -211,7 +210,6 @@ const Report = () => {
                           {role === 'ADMIN' && (
                             <>
                               <CTableDataCell>{item.username}</CTableDataCell>
-                              <CTableDataCell>{item.company_name}</CTableDataCell>
                             </>
                           )}
                           <CTableDataCell>{item.site_name}</CTableDataCell>
@@ -221,15 +219,15 @@ const Report = () => {
                           <CTableDataCell>{item.year}</CTableDataCell>
                           <CTableDataCell>
                             <div className="d-flex gap-1">
-                              {/* <CButton
+                              <CButton
                                 color="info"
                                 className="text-white"
                                 size="sm"
-                                onClick={() => handleShowDetail(item.report_id)}
+                                onClick={() => handleShowDetail(item.reports_id)}
                               >
                                 <CIcon icon={cilMagnifyingGlass} />
                               </CButton>
-                              <CButton
+                              {/* <CButton
                                 color="warning"
                                 className="text-white"
                                 size="sm"
