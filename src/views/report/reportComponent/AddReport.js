@@ -11,7 +11,7 @@ import {
   CRow,
 } from '@coreui/react'
 import userAPI from '../../../api/userAPI'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import CIcon from '@coreui/icons-react'
 import { cilSave } from '@coreui/icons'
 import { useFieldArray, useForm } from 'react-hook-form'
@@ -19,6 +19,7 @@ import Swal from 'sweetalert2'
 import ResponseError from '../../../components/ResponseError'
 import reportAPI from '../../../api/reportAPI'
 import { useSelector } from 'react-redux'
+import provinceAPI from '../../../api/provinceAPI'
 
 const AddReport = ({ visible, closeModal, token, refetch }) => {
   const users_id = useSelector((state) => state.user.users_id)
@@ -63,6 +64,12 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
       pic_letter_no: '',
       pic_letter_date: '',
     },
+  })
+
+  const { data: provinceOptions = [] } = useQuery({
+    queryKey: ['province-options'],
+    queryFn: () => provinceAPI.getProvinceOptions({ token }),
+    enabled: !!visible,
   })
 
   const { mutate: createReport } = useMutation({
@@ -158,6 +165,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                 <CFormLabel>Jenis Izin</CFormLabel>
                 <CFormSelect
                   options={[
+                    { label: '=== Pilih Jenis Izin ===', value: '' },
                     { label: 'IUP', value: 'IUP' },
                     { label: 'IUPK', value: 'IUPK' },
                     { label: 'PKP2B', value: 'PKP2B' },
@@ -168,7 +176,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
               </CCol>
               <CCol md={3} className="mb-3">
                 <CFormLabel>Provinsi</CFormLabel>
-                <CFormInput {...register(`province`)} />
+                <CFormSelect options={provinceOptions} {...register(`province`)} />
               </CCol>
               <CCol md={3} className="mb-3">
                 <CFormLabel>Kegiatan</CFormLabel>
