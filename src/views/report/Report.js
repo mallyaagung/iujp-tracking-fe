@@ -239,7 +239,7 @@ const Report = () => {
                                 color="danger"
                                 className="text-white"
                                 size="sm"
-                                onClick={() => handleDelete(item.report_id)}
+                                onClick={() => handleDelete(item.reports_id)}
                               >
                                 <CIcon icon={cilTrash} />
                               </CButton>
