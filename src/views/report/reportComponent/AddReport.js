@@ -5,21 +5,23 @@ import {
   CFormInput,
   CFormLabel,
   CFormSelect,
+  CInputGroup,
   CModal,
   CModalBody,
   CModalHeader,
   CRow,
 } from '@coreui/react'
-import userAPI from '../../../api/userAPI'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import CIcon from '@coreui/icons-react'
 import { cilSave } from '@coreui/icons'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import Swal from 'sweetalert2'
 import ResponseError from '../../../components/ResponseError'
 import reportAPI from '../../../api/reportAPI'
 import { useSelector } from 'react-redux'
 import provinceAPI from '../../../api/provinceAPI'
+import companyAPI from '../../../api/companyAPI'
+import Select from 'react-select'
 
 const AddReport = ({ visible, closeModal, token, refetch }) => {
   const users_id = useSelector((state) => state.user.users_id)
@@ -37,6 +39,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
     handleSubmit,
     getValues,
     reset,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -49,13 +52,21 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
       activity: '',
       contract_time: '',
       contract_value: '',
+      contract_value_currency: 'Rp',
       contract_realization: '',
+      contract_realization_currency: 'Rp',
       investation: '',
+      investation_currency: 'Rp',
       receive_nation: '',
+      receive_nation_currency: 'Rp',
       receive_country: '',
+      receive_country_currency: 'Rp',
       expend_local: '',
+      expend_local_currency: 'Rp',
       expend_national: '',
+      expend_national_currency: 'Rp',
       expend_import: '',
+      expend_import_currency: 'Rp',
       workforce_local: '',
       workforce_national: '',
       workforce_foreign_role: '',
@@ -69,6 +80,12 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
   const { data: provinceOptions = [] } = useQuery({
     queryKey: ['province-options'],
     queryFn: () => provinceAPI.getProvinceOptions({ token }),
+    enabled: !!visible,
+  })
+
+  const { data: companyOptions = [] } = useQuery({
+    queryKey: ['company-options'],
+    queryFn: () => companyAPI.getCompanyOptions({ token }),
     enabled: !!visible,
   })
 
@@ -153,13 +170,37 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
           </CRow>
           {/* ------ REPORT DETAILS ------ */}
           <div className="detail-section">
-            <div className="section-title text-center">Report Detail</div>
+            <div className="section-title text-center">Form Report</div>
             <hr />
             <CRow>
               {/* Row 1 */}
               <CCol md={3} className="mb-3">
                 <CFormLabel>Nama Site / Nama IUP</CFormLabel>
-                <CFormInput {...register(`site_name`)} required />
+                <CFormSelect
+                  options={companyOptions}
+                  {...register('site_name', { required: true })}
+                />
+                {/* <Controller
+                  name="site_name"
+                  control={control}
+                  rules={{
+                    validate: (value) =>
+                      value?.value === '' ? 'Pilih site terlebih dahulu' : true,
+                  }}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Select
+                        {...field}
+                        options={companyOptions}
+                        onChange={(selected) => field.onChange(selected)}
+                      />
+                      {fieldState.error && (
+                        <p style={{ color: 'red' }}>{fieldState.error.message}</p>
+                        // <span className="text-danger">This field is required</span>
+                      )}
+                    </>
+                  )}
+                /> */}
               </CCol>
               <CCol md={3} className="mb-3">
                 <CFormLabel>Jenis Izin</CFormLabel>
@@ -200,15 +241,87 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
               </CCol>
               <CCol md={3} className="mb-3">
                 <CFormLabel>Nilai Kontrak (Rp/USD)</CFormLabel>
-                <CFormInput type="number" {...register(`contract_value`)} />
+                <CInputGroup>
+                  <CFormSelect
+                    options={[
+                      { value: 'Rp', label: 'Rp' },
+                      { value: 'USD', label: 'USD' },
+                    ]}
+                    {...register('contract_value_currency')}
+                    style={{
+                      maxWidth: '90px',
+                      borderTopRightRadius: 0,
+                      borderBottomRightRadius: 0,
+                    }}
+                  />
+
+                  {/* Value Input */}
+                  <CFormInput
+                    type="number"
+                    placeholder="Masukkan nilai"
+                    {...register('contract_value')}
+                    style={{
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                    }}
+                  />
+                </CInputGroup>
               </CCol>
               <CCol md={3} className="mb-3">
                 <CFormLabel>Realisasi (Rp/USD)</CFormLabel>
-                <CFormInput type="number" {...register(`contract_realization`)} />
+                <CInputGroup>
+                  <CFormSelect
+                    options={[
+                      { value: 'Rp', label: 'Rp' },
+                      { value: 'USD', label: 'USD' },
+                    ]}
+                    {...register('contract_realization_currency')}
+                    style={{
+                      maxWidth: '90px',
+                      borderTopRightRadius: 0,
+                      borderBottomRightRadius: 0,
+                    }}
+                  />
+
+                  {/* Value Input */}
+                  <CFormInput
+                    type="number"
+                    placeholder="Masukkan nilai"
+                    {...register(`contract_realization`)}
+                    style={{
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                    }}
+                  />
+                </CInputGroup>
               </CCol>
               <CCol md={3} className="mb-3">
                 <CFormLabel>Investasi (Rp/USD)</CFormLabel>
-                <CFormInput type="number" {...register(`investation`)} />
+                <CInputGroup>
+                  <CFormSelect
+                    options={[
+                      { value: 'Rp', label: 'Rp' },
+                      { value: 'USD', label: 'USD' },
+                    ]}
+                    {...register('investation_currency')}
+                    style={{
+                      maxWidth: '90px',
+                      borderTopRightRadius: 0,
+                      borderBottomRightRadius: 0,
+                    }}
+                  />
+
+                  {/* Value Input */}
+                  <CFormInput
+                    type="number"
+                    placeholder="Masukkan nilai"
+                    {...register(`investation`)}
+                    style={{
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                    }}
+                  />
+                </CInputGroup>
               </CCol>
               <CRow className="d-flex align-items-center my-3">
                 <CCol xs={5}>
@@ -224,11 +337,59 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
               {/* Row 3 */}
               <CCol md={6} className="mb-3">
                 <CFormLabel>Penerimaan Negara (Rp/USD)</CFormLabel>
-                <CFormInput type="number" {...register(`receive_nation`)} />
+                <CInputGroup>
+                  <CFormSelect
+                    options={[
+                      { value: 'Rp', label: 'Rp' },
+                      { value: 'USD', label: 'USD' },
+                    ]}
+                    {...register('receive_nation_currency')}
+                    style={{
+                      maxWidth: '90px',
+                      borderTopRightRadius: 0,
+                      borderBottomRightRadius: 0,
+                    }}
+                  />
+
+                  {/* Value Input */}
+                  <CFormInput
+                    type="number"
+                    placeholder="Masukkan nilai"
+                    {...register(`receive_nation`)}
+                    style={{
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                    }}
+                  />
+                </CInputGroup>
               </CCol>
               <CCol md={6} className="mb-3">
                 <CFormLabel>Penerimaan Daerah (Rp/USD)</CFormLabel>
-                <CFormInput type="number" {...register(`receive_country`)} />
+                <CInputGroup>
+                  <CFormSelect
+                    options={[
+                      { value: 'Rp', label: 'Rp' },
+                      { value: 'USD', label: 'USD' },
+                    ]}
+                    {...register('receive_country_currency')}
+                    style={{
+                      maxWidth: '90px',
+                      borderTopRightRadius: 0,
+                      borderBottomRightRadius: 0,
+                    }}
+                  />
+
+                  {/* Value Input */}
+                  <CFormInput
+                    type="number"
+                    placeholder="Masukkan nilai"
+                    {...register(`receive_country`)}
+                    style={{
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                    }}
+                  />
+                </CInputGroup>
               </CCol>
               <CRow className="d-flex align-items-center my-3">
                 <CCol xs={5}>
@@ -244,15 +405,87 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
               {/* Row 4 */}
               <CCol md={4} className="mb-3">
                 <CFormLabel>Pembelanjaan Lokal (Rp/USD)</CFormLabel>
-                <CFormInput type="number" {...register(`expend_local`)} />
+                <CInputGroup>
+                  <CFormSelect
+                    options={[
+                      { value: 'Rp', label: 'Rp' },
+                      { value: 'USD', label: 'USD' },
+                    ]}
+                    {...register('expend_local_currency')}
+                    style={{
+                      maxWidth: '90px',
+                      borderTopRightRadius: 0,
+                      borderBottomRightRadius: 0,
+                    }}
+                  />
+
+                  {/* Value Input */}
+                  <CFormInput
+                    type="number"
+                    placeholder="Masukkan nilai"
+                    {...register(`expend_local`)}
+                    style={{
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                    }}
+                  />
+                </CInputGroup>
               </CCol>
               <CCol md={4} className="mb-3">
                 <CFormLabel>Pembelanjaan Nasional (Rp/USD)</CFormLabel>
-                <CFormInput type="number" {...register(`expend_national`)} />
+                <CInputGroup>
+                  <CFormSelect
+                    options={[
+                      { value: 'Rp', label: 'Rp' },
+                      { value: 'USD', label: 'USD' },
+                    ]}
+                    {...register('expend_national_currency')}
+                    style={{
+                      maxWidth: '90px',
+                      borderTopRightRadius: 0,
+                      borderBottomRightRadius: 0,
+                    }}
+                  />
+
+                  {/* Value Input */}
+                  <CFormInput
+                    type="number"
+                    placeholder="Masukkan nilai"
+                    {...register(`expend_national`)}
+                    style={{
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                    }}
+                  />
+                </CInputGroup>
               </CCol>
               <CCol md={4} className="mb-3">
                 <CFormLabel>Pembelanjaan Impor (Rp/USD)</CFormLabel>
-                <CFormInput type="number" {...register(`expend_import`)} />
+                <CInputGroup>
+                  <CFormSelect
+                    options={[
+                      { value: 'Rp', label: 'Rp' },
+                      { value: 'USD', label: 'USD' },
+                    ]}
+                    {...register('expend_import_currency')}
+                    style={{
+                      maxWidth: '90px',
+                      borderTopRightRadius: 0,
+                      borderBottomRightRadius: 0,
+                    }}
+                  />
+
+                  {/* Value Input */}
+                  <CFormInput
+                    type="number"
+                    placeholder="Masukkan nilai"
+                    {...register(`expend_import`)}
+                    style={{
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                    }}
+                  />
+                </CInputGroup>
               </CCol>
               <CRow className="d-flex align-items-center my-3">
                 <CCol xs={5}>

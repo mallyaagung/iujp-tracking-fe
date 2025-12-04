@@ -1,9 +1,9 @@
 import axios from 'axios'
 
-const provinceAPI = {
-  getProvinceOptions: async ({ token }) => {
+const companyAPI = {
+  getCompanyOptions: async ({ token }) => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/province/options`, {
+      const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/company/options`, {
         headers: {
           access_token: `Bearer ${token}`,
         },
@@ -22,4 +22,4 @@ const provinceAPI = {
   },
 }
 
-export default provinceAPI
+export default companyAPI

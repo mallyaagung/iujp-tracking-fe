@@ -1,10 +1,8 @@
 import React, { Suspense } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { useSelector } from 'react-redux'
 
 import { CSpinner } from '@coreui/react'
 import './scss/style.scss'
-import PrivateRoute from './config/routes/PrivateRoute'
 
 const DefaultLayout = React.lazy(() => import('./layout/DefaultLayout'))
 const Login = React.lazy(() => import('./views/login/Login'))
@@ -22,14 +20,7 @@ const App = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
 
-          <Route
-            path="*"
-            element={
-              <PrivateRoute>
-                <DefaultLayout />
-              </PrivateRoute>
-            }
-          />
+          <Route path="*" element={<DefaultLayout />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

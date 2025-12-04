@@ -5,10 +5,9 @@ const Report = React.lazy(() => import('./views/report/Report'))
 const User = React.lazy(() => import('./views/user/User'))
 
 const routes = [
-  { path: '/', exact: true, name: 'Home' },
-  { path: '/dashboard', name: 'Dashboard', element: Dashboard },
-  { path: '/report', name: 'Report', element: Report },
-  { path: '/user', name: 'User', element: User },
+  { path: '/dashboard', name: 'Dashboard', element: Dashboard, allowedUsers: ['ADMIN'] },
+  { path: '/report', name: 'Report', element: Report, allowedUsers: ['ADMIN', 'USER'] },
+  { path: '/user', name: 'User', element: User, allowedUsers: ['ADMIN'] },
 ]
 
 export default routes

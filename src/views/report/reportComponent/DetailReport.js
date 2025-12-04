@@ -1,6 +1,17 @@
-import { CCol, CFormInput, CFormLabel, CModal, CModalBody, CModalHeader, CRow } from '@coreui/react'
+import {
+  CCol,
+  CFormInput,
+  CFormLabel,
+  CInputGroup,
+  CInputGroupText,
+  CModal,
+  CModalBody,
+  CModalHeader,
+  CRow,
+} from '@coreui/react'
 import { useQuery } from '@tanstack/react-query'
 import reportAPI from '../../../api/reportAPI'
+import CurrencyDisplay from '../../../components/CurrencyDisplay'
 
 const DetailReport = ({ id, visible, closeModal, token }) => {
   const { data: dataReport, isLoading: isLoadingReport } = useQuery({
@@ -64,16 +75,25 @@ const DetailReport = ({ id, visible, closeModal, token }) => {
             <CFormInput disabled value={dataReport?.contract_time} />
           </CCol>
           <CCol md={3} className="mb-3">
-            <CFormLabel>Nilai Kontrak (Rp/USD)</CFormLabel>
-            <CFormInput type="number" disabled value={dataReport?.contract_value} />
+            <CFormLabel>Nilai Kontrak</CFormLabel>
+            <CurrencyDisplay
+              value={dataReport?.contract_value}
+              currency={dataReport?.contract_value_currency}
+            />
           </CCol>
           <CCol md={3} className="mb-3">
-            <CFormLabel>Realisasi (Rp/USD)</CFormLabel>
-            <CFormInput type="number" disabled value={dataReport?.contract_realization} />
+            <CFormLabel>Realisasi</CFormLabel>
+            <CurrencyDisplay
+              value={dataReport?.contract_realization}
+              currency={dataReport?.contract_realization_currency}
+            />
           </CCol>
           <CCol md={3} className="mb-3">
-            <CFormLabel>Investasi (Rp/USD)</CFormLabel>
-            <CFormInput type="number" disabled value={dataReport?.investation} />
+            <CFormLabel>Investasi</CFormLabel>
+            <CurrencyDisplay
+              value={dataReport?.investation}
+              currency={dataReport?.investation_currency}
+            />
           </CCol>
         </CRow>
 
@@ -91,12 +111,18 @@ const DetailReport = ({ id, visible, closeModal, token }) => {
 
         <CRow>
           <CCol md={6} className="mb-3">
-            <CFormLabel>Penerimaan Negara (Rp/USD)</CFormLabel>
-            <CFormInput type="number" disabled value={dataReport?.receive_nation} />
+            <CFormLabel>Penerimaan Negara</CFormLabel>
+            <CurrencyDisplay
+              value={dataReport?.receive_nation}
+              currency={dataReport?.receive_nation_currency}
+            />
           </CCol>
           <CCol md={6} className="mb-3">
-            <CFormLabel>Penerimaan Daerah (Rp/USD)</CFormLabel>
-            <CFormInput type="number" disabled value={dataReport?.receive_country} />
+            <CFormLabel>Penerimaan Daerah</CFormLabel>
+            <CurrencyDisplay
+              value={dataReport?.receive_country}
+              currency={dataReport?.receive_country_currency}
+            />
           </CCol>
         </CRow>
 
@@ -114,16 +140,25 @@ const DetailReport = ({ id, visible, closeModal, token }) => {
 
         <CRow>
           <CCol md={4} className="mb-3">
-            <CFormLabel>Pembelanjaan Lokal (Rp/USD)</CFormLabel>
-            <CFormInput type="number" disabled value={dataReport?.expend_local} />
+            <CFormLabel>Pembelanjaan Lokal</CFormLabel>
+            <CurrencyDisplay
+              value={dataReport?.expend_local}
+              currency={dataReport?.expend_local_currency}
+            />
           </CCol>
           <CCol md={4} className="mb-3">
-            <CFormLabel>Pembelanjaan Nasional (Rp/USD)</CFormLabel>
-            <CFormInput type="number" disabled value={dataReport?.expend_national} />
+            <CFormLabel>Pembelanjaan Nasional</CFormLabel>
+            <CurrencyDisplay
+              value={dataReport?.expend_national}
+              currency={dataReport?.expend_national_currency}
+            />
           </CCol>
           <CCol md={4} className="mb-3">
-            <CFormLabel>Pembelanjaan Impor (Rp/USD)</CFormLabel>
-            <CFormInput type="number" disabled value={dataReport?.expend_import} />
+            <CFormLabel>Pembelanjaan Impor</CFormLabel>
+            <CurrencyDisplay
+              value={dataReport?.expend_import}
+              currency={dataReport?.expend_import_currency}
+            />
           </CCol>
         </CRow>
 
