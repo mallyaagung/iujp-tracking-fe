@@ -52,7 +52,7 @@ const reportAPI = {
         `${import.meta.env.VITE_APP_API_URL}/report/dashboard?year=${year}&quarter=${quarter}`,
         {
           headers: {
-            access_token: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       )
