@@ -5,7 +5,7 @@ const provinceAPI = {
     try {
       const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/province/options`, {
         headers: {
-          access_token: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       })
 

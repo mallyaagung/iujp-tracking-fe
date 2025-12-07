@@ -7,7 +7,7 @@ const reportAPI = {
         `${import.meta.env.VITE_APP_API_URL}/report/all?id=${id}&sort=${sort}&sortType=${sortType}&pageSize=${pageSize}&currentPage=${currentPage}`,
         {
           headers: {
-            access_token: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       )
@@ -23,7 +23,7 @@ const reportAPI = {
     try {
       const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/report/${id}`, {
         headers: {
-          access_token: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       })
 
@@ -71,7 +71,7 @@ const reportAPI = {
         payload,
         {
           headers: {
-            access_token: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       )
@@ -111,7 +111,7 @@ const reportAPI = {
         {
           responseType: 'blob',
           headers: {
-            access_token: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       )

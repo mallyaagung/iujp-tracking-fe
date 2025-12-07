@@ -1,25 +1,15 @@
-import React from 'react'
-import {
-  CAvatar,
-  CBadge,
-  CButton,
-  CDropdown,
-  CDropdownDivider,
-  CDropdownHeader,
-  CDropdownItem,
-  CDropdownMenu,
-  CDropdownToggle,
-} from '@coreui/react'
+import { CDropdown, CDropdownItem, CDropdownMenu, CDropdownToggle, CFormLabel } from '@coreui/react'
 import { cilAccountLogout, cilLockLocked, cilUser } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 
 import Swal from 'sweetalert2'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
 const AppHeaderDropdown = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const company_name = useSelector((state) => state.user.company_name)
 
   const handleLogOut = () => {
     Swal.fire({
@@ -44,9 +34,8 @@ const AppHeaderDropdown = () => {
   return (
     <CDropdown variant="nav-item">
       <CDropdownToggle placement="bottom-end" className="py-0 pe-0" caret={false}>
-        <CButton style={{ color: 'white', border: '1px white solid' }}>
-          <CIcon icon={cilUser} />
-        </CButton>
+        <CIcon style={{ color: 'white' }} icon={cilUser} />{' '}
+        <CFormLabel style={{ color: 'white' }}>{company_name}</CFormLabel>
       </CDropdownToggle>
       <CDropdownMenu className="pt-0" placement="bottom-end">
         <CDropdownItem href="#">

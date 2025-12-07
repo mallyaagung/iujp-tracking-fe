@@ -18,7 +18,7 @@ import {
 import { useMutation, useQuery } from '@tanstack/react-query'
 import userAPI from '../../api/userAPI'
 import { useSelector } from 'react-redux'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Pagination from '../../components/Pagination'
 import DetailUser from './userComponent/DetailUser'
 import { encode } from 'base-64'
@@ -29,14 +29,14 @@ import Swal from 'sweetalert2'
 
 const User = () => {
   const token = useSelector((state) => state.user.token)
-  const user_id = useSelector((state) => state.user.user_id)
+  const user_id = useSelector((state) => state.user.users_id)
 
   const [pagination, setPagination] = useState({
     pageSize: 10,
     currentPage: 1,
   })
   const [sorting, setSorting] = useState({
-    sort: 'username',
+    sort: 'company',
     sortType: 'asc',
   })
 
@@ -142,6 +142,8 @@ const User = () => {
     })
   }
 
+  var numbering = pagination.currentPage * pagination.pageSize - (pagination.pageSize - 1)
+
   return (
     <>
       <DetailUser
@@ -186,7 +188,7 @@ const User = () => {
                   <CTableHead>
                     <CTableRow>
                       <CTableHeaderCell>No.</CTableHeaderCell>
-                      <CTableHeaderCell>Nama</CTableHeaderCell>
+                      <CTableHeaderCell>Username</CTableHeaderCell>
                       <CTableHeaderCell>Perusahaan</CTableHeaderCell>
                       <CTableHeaderCell>Role</CTableHeaderCell>
                       <CTableHeaderCell>Aksi</CTableHeaderCell>
@@ -197,12 +199,12 @@ const User = () => {
                     {dataUser?.data && dataUser.data.length > 0 ? (
                       dataUser.data.map((item, index) => (
                         <CTableRow key={item.user_id || index}>
-                          <CTableDataCell>{index + 1}</CTableDataCell>
+                          <CTableDataCell>{numbering++}</CTableDataCell>
                           <CTableDataCell>{item.username}</CTableDataCell>
                           <CTableDataCell>{item.company_name}</CTableDataCell>
                           <CTableDataCell>{item.role}</CTableDataCell>
                           <CTableDataCell>
-                            {user_id !== item.user_id && (
+                            {user_id !== item.users_id && (
                               <div className="d-flex gap-1">
                                 <CButton
                                   color="info"

@@ -7,7 +7,7 @@ const userAPI = {
         `${import.meta.env.VITE_APP_API_URL}/user/all?sort=${sort}&sortType=${sortType}&pageSize=${pageSize}&currentPage=${currentPage}`,
         {
           headers: {
-            access_token: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       )
@@ -23,7 +23,7 @@ const userAPI = {
     try {
       const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/user/${id}`, {
         headers: {
-          access_token: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       })
 
@@ -41,7 +41,7 @@ const userAPI = {
         payload,
         {
           headers: {
-            access_token: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       )
@@ -60,7 +60,7 @@ const userAPI = {
         payload,
         {
           headers: {
-            access_token: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       )
@@ -76,13 +76,25 @@ const userAPI = {
     try {
       const response = await axios.delete(`${import.meta.env.VITE_APP_API_URL}/user/${id}`, {
         headers: {
-          access_token: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       })
 
       return response.data.data
     } catch (error) {
       console.log(error)
+      throw error
+    }
+  },
+
+  generateUser: async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/user/import`, {
+        responseType: 'arraybuffer', // IMPORTANT for Excel files
+      })
+
+      return response
+    } catch (error) {
       throw error
     }
   },
