@@ -5,7 +5,13 @@ import { useQuery } from '@tanstack/react-query'
 const DetailUser = ({ id, visible, closeModal, token }) => {
   const { data: dataUser, isLoading: isLoadingDataUser } = useQuery({
     queryKey: ['user-by-id'],
-    queryFn: () => userAPI.getUserById({ token, id }),
+    queryFn: async () => {
+      try {
+        return await userAPI.getUserById({ token, id })
+      } catch (error) {
+        ResponseError(error, dispatch, navigate)
+      }
+    },
     enabled: !!id,
   })
 

@@ -45,8 +45,8 @@ const Login = () => {
         icon: 'success',
       })
     },
-    onError: (error) => {
-      ResponseError(error, dispatch, navigate)
+    onError: (err) => {
+      ResponseError(err, dispatch, navigate)
     },
   })
 
@@ -64,7 +64,7 @@ const Login = () => {
 
   const handleLogin = () => {
     const payload = getValues()
-    login(payload)
+    login(payload, dispatch, navigate)
   }
   return (
     <div className="bg-body-tertiary min-vh-100 d-flex flex-row align-items-center">

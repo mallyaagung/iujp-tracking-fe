@@ -53,7 +53,13 @@ const User = () => {
     isLoading: isLoadingAllUser,
   } = useQuery({
     queryKey: ['all-user', sorting, pagination], // add dependencies!
-    queryFn: () => userAPI.getAllUser({ token, ...sorting, ...pagination }),
+    queryFn: async () => {
+      try {
+        return await userAPI.getAllUser({ token, ...sorting, ...pagination })
+      } catch (error) {
+        ResponseError(error, dispatch, navigate)
+      }
+    },
   })
 
   const { mutate: deleteUser } = useMutation({

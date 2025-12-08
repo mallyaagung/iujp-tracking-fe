@@ -1,10 +1,21 @@
 import axios from 'axios'
+import ResponseError from '../components/ResponseError'
 
 const reportAPI = {
-  getAllReport: async ({ token, sort, sortType, pageSize, currentPage, id }) => {
+  getAllReport: async ({
+    token,
+    sort,
+    sortType,
+    pageSize,
+    currentPage,
+    id,
+    dateTo,
+    dateFrom,
+    search,
+  }) => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_APP_API_URL}/report/all?id=${id}&sort=${sort}&sortType=${sortType}&pageSize=${pageSize}&currentPage=${currentPage}`,
+        `${import.meta.env.VITE_APP_API_URL}/report/all?id=${id}&sort=${sort}&sortType=${sortType}&pageSize=${pageSize}&currentPage=${currentPage}&dateTo=${dateTo}&dateFrom=${dateFrom}&search=${search}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -14,12 +25,11 @@ const reportAPI = {
 
       return { data: response.data.data, meta: response.data.meta }
     } catch (error) {
-      console.log(error)
       throw error
     }
   },
 
-  getReportById: async ({ token, id }) => {
+  getReportById: async ({ token, id, dispatch, navigate }) => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/report/${id}`, {
         headers: {
@@ -41,15 +51,15 @@ const reportAPI = {
 
       return response.data.data
     } catch (error) {
-      console.log(error)
+      ResponseError(error, dispatch, navigate)
       throw error
     }
   },
 
-  getReportSubmission: async ({ token, year, quarter }) => {
+  getReportSubmission: async ({ token, year, quarter, pageSize, currentPage }) => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_APP_API_URL}/report/dashboard?year=${year}&quarter=${quarter}`,
+        `${import.meta.env.VITE_APP_API_URL}/report/dashboard?year=${year}&quarter=${quarter}&pageSize=${pageSize}&currentPage=${currentPage}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -57,14 +67,17 @@ const reportAPI = {
         },
       )
 
-      return response.data.data
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'API Error')
+      }
+
+      return response.data.data // <-- only return useful data
     } catch (error) {
-      console.log(error)
-      throw error
+      throw error // <-- let React Query handle it
     }
   },
 
-  updateReport: async ({ token, id, payload }) => {
+  updateReport: async ({ token, id, payload, dispatch, navigate }) => {
     try {
       const response = await axios.patch(
         `${import.meta.env.VITE_APP_API_URL}/report/${id}`,
@@ -78,12 +91,12 @@ const reportAPI = {
 
       return response.data.data
     } catch (error) {
-      console.log(error)
+      ResponseError(error, dispatch, navigate)
       throw error
     }
   },
 
-  createReport: async ({ token, payload }) => {
+  createReport: async ({ token, payload, dispatch, navigate }) => {
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_APP_API_URL}/report/create`,
@@ -98,15 +111,14 @@ const reportAPI = {
 
       return response.data.data
     } catch (error) {
-      console.log(error)
       throw error
     }
   },
 
-  exportReport: async ({ token, payload, years, quarter }) => {
+  exportReport: async ({ token, payload, years, quarter, dispatch, navigate }) => {
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_APP_API_URL}/report/export`,
+        `${import.meta.env.VITE_APP_API_URL}/report/export?year=${years}&quarter=${quarter}`,
         payload,
         {
           responseType: 'blob',
@@ -115,8 +127,6 @@ const reportAPI = {
           },
         },
       )
-
-      console.log(response)
 
       const outputFilename = `Export Data Tahun ${years} Triwulan ${quarter}.xlsx`
 
@@ -136,7 +146,7 @@ const reportAPI = {
 
       return true
     } catch (error) {
-      console.log(error)
+      ResponseError(error, dispatch, navigate)
       throw error
     }
   },
@@ -151,7 +161,7 @@ const reportAPI = {
 
       return response.data.data
     } catch (error) {
-      console.log(error)
+      ResponseError(error, dispatch, navigate)
       throw error
     }
   },

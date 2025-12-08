@@ -6,6 +6,8 @@ import {
   CCardBody,
   CCardHeader,
   CCol,
+  CFormInput,
+  CFormLabel,
   CRow,
   CSpinner,
   CTable,
@@ -16,7 +18,7 @@ import {
   CTableRow,
 } from '@coreui/react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useState } from 'react'
 import Pagination from '../../components/Pagination'
 import { encode } from 'base-64'
@@ -26,8 +28,13 @@ import reportAPI from '../../api/reportAPI'
 import AddReport from './reportComponent/AddReport'
 import DetailReport from './reportComponent/DetailReport'
 import EditReport from './reportComponent/EditReport'
+import { useNavigate } from 'react-router-dom'
+import moment from 'moment/moment'
+import { useSearch } from '../../hooks/useSearch'
 
 const Report = () => {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
   const token = useSelector((state) => state.user.token)
   const user_id = useSelector((state) => state.user.users_id)
   const role = useSelector((state) => state.user.role)
@@ -40,6 +47,10 @@ const Report = () => {
     sort: 'createdAt',
     sortType: 'asc',
   })
+  const [date, setDate] = useState({
+    dateFrom: moment().startOf('day').format('YYYY-MM-DD'),
+    dateTo: moment().endOf('day').format('YYYY-MM-DD'),
+  })
 
   const [visible, setVisible] = useState({
     detail: false,
@@ -47,15 +58,29 @@ const Report = () => {
     edit: false,
   })
   const [reportId, setReportId] = useState('')
+  const [search, setSearch] = useState('')
+  const DebounceSearch = useSearch(search, 500)
 
   const {
     data: dataReport,
     refetch: refetchAllReport,
     isLoading: isLoadingAllReport,
   } = useQuery({
-    queryKey: ['all-report', sorting, pagination],
-    queryFn: () =>
-      reportAPI.getAllReport({ token, ...sorting, ...pagination, id: encode(user_id) }),
+    queryKey: ['all-report', sorting, pagination, date, DebounceSearch],
+    queryFn: async () => {
+      try {
+        return await reportAPI.getAllReport({
+          token,
+          ...sorting,
+          ...pagination,
+          ...date,
+          id: encode(user_id),
+          search: DebounceSearch,
+        })
+      } catch (error) {
+        ResponseError(error, dispatch, navigate)
+      }
+    },
   })
 
   const { mutate: deleteReport } = useMutation({
@@ -67,8 +92,8 @@ const Report = () => {
       })
       refetchAllReport()
     },
-    onError: (error) => {
-      ResponseError(error, dispatch, navigate)
+    onError: (err) => {
+      ResponseError(err, dispatch, navigate)
     },
   })
 
@@ -98,6 +123,27 @@ const Report = () => {
       pageSize: e.target.value,
       currentPage: 1,
     }))
+  }
+
+  const handleChangeDate = (e) => {
+    const { name, value } = e.target
+
+    setDate({
+      ...date,
+      [name]: value,
+    })
+    setPagination((prev) => ({
+      ...prev,
+      currentPage: 1,
+    }))
+  }
+
+  const handleSearch = (e) => {
+    setPagination((prev) => ({
+      ...prev,
+      currentPage: 1,
+    }))
+    setSearch(e.target.value)
   }
 
   const handleShowDetail = (id) => {
@@ -139,7 +185,7 @@ const Report = () => {
       cancelButtonText: 'Tidak',
     }).then((result) => {
       if (result.isConfirmed) {
-        deleteReport({ token, id: encode(id) })
+        deleteReport({ token, id: encode(id), dispatch, navigate })
       }
     })
   }
@@ -177,6 +223,41 @@ const Report = () => {
           </div>
         </CCardHeader>
         <CCardBody>
+          <CRow className="mb-3">
+            <CCol md={3}>
+              <CFormLabel>Tanggal Awal</CFormLabel>
+              <CFormInput
+                type="date"
+                onKeyDown={(e) => e.preventDefault()}
+                name="dateFrom"
+                max={moment().format('YYYY-MM-DD')}
+                min={'1900-01-01'}
+                defaultValue={date.dateFrom}
+                onChange={(e) => handleChangeDate(e)}
+              />
+            </CCol>
+            <CCol md={3}>
+              <CFormLabel>Tanggal Akhir</CFormLabel>
+              <CFormInput
+                type="date"
+                onKeyDown={(e) => e.preventDefault()}
+                name="dateTo"
+                max={moment().format('YYYY-MM-DD')}
+                min={date.dateFrom}
+                defaultValue={date.dateTo}
+                onChange={(e) => handleChangeDate(e)}
+              />
+            </CCol>
+            <CCol md={3}>
+              <CFormLabel>Pencarian</CFormLabel>
+              <CFormInput
+                placeholder="Cari nama site"
+                type="text"
+                value={search}
+                onChange={(e) => handleSearch(e)}
+              />
+            </CCol>
+          </CRow>
           <CRow>
             <CCol>
               {isLoadingAllReport ? (

@@ -30,7 +30,13 @@ const EditUser = ({ id, visible, closeModal, token, refetch }) => {
 
   const { data: dataUser } = useQuery({
     queryKey: ['edit-user-by-id'],
-    queryFn: () => userAPI.getUserById({ token, id }),
+    queryFn: async () => {
+      try {
+        return await userAPI.getUserById({ token, id })
+      } catch (error) {
+        ResponseError(error, dispatch, navigate)
+      }
+    },
     enabled: !!id,
   })
 

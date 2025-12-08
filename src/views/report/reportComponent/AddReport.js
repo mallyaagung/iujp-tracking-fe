@@ -18,12 +18,15 @@ import { Controller, useForm } from 'react-hook-form'
 import Swal from 'sweetalert2'
 import ResponseError from '../../../components/ResponseError'
 import reportAPI from '../../../api/reportAPI'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import provinceAPI from '../../../api/provinceAPI'
 import companyAPI from '../../../api/companyAPI'
 import Select from 'react-select'
+import { useNavigate } from 'react-router-dom'
 
 const AddReport = ({ visible, closeModal, token, refetch }) => {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
   const users_id = useSelector((state) => state.user.users_id)
 
   const currentYear = new Date().getFullYear()
@@ -79,13 +82,25 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
 
   const { data: provinceOptions = [] } = useQuery({
     queryKey: ['province-options'],
-    queryFn: () => provinceAPI.getProvinceOptions({ token }),
+    queryFn: async () => {
+      try {
+        return await provinceAPI.getProvinceOptions({ token })
+      } catch (error) {
+        ResponseError(error, dispatch, navigate)
+      }
+    },
     enabled: !!visible,
   })
 
   const { data: companyOptions = [] } = useQuery({
     queryKey: ['company-options'],
-    queryFn: () => companyAPI.getCompanyOptions({ token }),
+    queryFn: async () => {
+      try {
+        return await companyAPI.getCompanyOptions({ token })
+      } catch (error) {
+        ResponseError(error, dispatch, navigate)
+      }
+    },
     enabled: !!visible,
   })
 
@@ -100,8 +115,8 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
       closeModal()
       reset()
     },
-    onError: (error) => {
-      ResponseError(error, dispatch, navigate)
+    onError: (err) => {
+      ResponseError(err, dispatch, navigate)
     },
   })
 
@@ -129,7 +144,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
           formData.append('files', data.files[i]) // same key name "files"
         }
 
-        createReport({ token, payload: formData })
+        createReport({ token, payload: formData, dispatch, navigate })
       }
     })
   }
@@ -164,7 +179,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
               />
             </CCol>
             <CCol md={4} className="mb-3">
-              <CFormLabel>Lampiran (Pdf / Excel)</CFormLabel>
+              <CFormLabel>Lampiran (Hanya Pdf)</CFormLabel>
               <CFormInput type="file" multiple accept=".pdf, .xls, .xlsx" {...register('files')} />
             </CCol>
           </CRow>
@@ -206,7 +221,6 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                 <CFormLabel>Jenis Izin</CFormLabel>
                 <CFormSelect
                   options={[
-                    { label: '=== Pilih Jenis Izin ===', value: '' },
                     { label: 'IUP', value: 'IUP' },
                     { label: 'IUPK', value: 'IUPK' },
                     { label: 'PKP2B', value: 'PKP2B' },

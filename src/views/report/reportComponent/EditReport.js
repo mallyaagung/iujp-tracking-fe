@@ -19,8 +19,12 @@ import { useEffect } from 'react'
 import Swal from 'sweetalert2'
 import ResponseError from '../../../components/ResponseError'
 import reportAPI from '../../../api/reportAPI'
+import { useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 const EditReport = ({ id, visible, closeModal, token, refetch }) => {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
   const {
     register,
     handleSubmit,
@@ -31,7 +35,13 @@ const EditReport = ({ id, visible, closeModal, token, refetch }) => {
 
   const { data: dataReport } = useQuery({
     queryKey: ['edit-report-by-id'],
-    queryFn: () => reportAPI.getReportById({ token, id }),
+    queryFn: async () => {
+      try {
+        return await reportAPI.getReportById({ token, id, dispatch, navigate })
+      } catch (error) {
+        ResponseError(error, dispatch, navigate)
+      }
+    },
     enabled: !!id,
   })
 
@@ -45,8 +55,8 @@ const EditReport = ({ id, visible, closeModal, token, refetch }) => {
       refetch()
       closeModal()
     },
-    onError: (error) => {
-      ResponseError(error, dispatch, navigate)
+    onError: (err) => {
+      ResponseError(err, dispatch, navigate)
     },
   })
 
@@ -62,7 +72,7 @@ const EditReport = ({ id, visible, closeModal, token, refetch }) => {
     }).then((result) => {
       if (result.isConfirmed) {
         const payload = getValues()
-        updateReport({ token, id, payload })
+        updateReport({ token, id, payload, dispatch, navigate })
       }
     })
   }

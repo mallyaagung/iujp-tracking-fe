@@ -12,11 +12,21 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import reportAPI from '../../../api/reportAPI'
 import CurrencyDisplay from '../../../components/CurrencyDisplay'
+import { useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 
 const DetailReport = ({ id, visible, closeModal, token }) => {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
   const { data: dataReport, isLoading: isLoadingReport } = useQuery({
     queryKey: ['report-by-id'],
-    queryFn: () => reportAPI.getReportById({ token, id }),
+    queryFn: async () => {
+      try {
+        return await reportAPI.getReportById({ token, id, dispatch, navigate })
+      } catch (error) {
+        ResponseError(error, dispatch, navigate)
+      }
+    },
     enabled: !!id,
   })
 
