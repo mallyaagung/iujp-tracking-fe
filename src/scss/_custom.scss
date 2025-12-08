@@ -272,4 +272,13 @@ table.table thead tr th {
   }
 }
 
+//PAGINATION
+ .col-btn
+  nav
+  ul.pagination
+  .page-item
+  .page-link {
+  cursor: pointer;
+}
+
 

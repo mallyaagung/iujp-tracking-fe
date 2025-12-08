@@ -90,7 +90,7 @@ const reportAPI = {
         payload,
         {
           headers: {
-            access_token: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data',
           },
         },
@@ -145,7 +145,7 @@ const reportAPI = {
     try {
       const response = await axios.delete(`${import.meta.env.VITE_APP_API_URL}/report/${id}`, {
         headers: {
-          access_token: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       })
 
