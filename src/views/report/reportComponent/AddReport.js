@@ -1,3 +1,4 @@
+import React, { useState, useMemo, useRef } from 'react'
 import {
   CButton,
   CCol,
@@ -10,45 +11,71 @@ import {
   CModalBody,
   CModalHeader,
   CRow,
+  CTable,
+  CTableBody,
+  CTableDataCell,
+  CTableHead,
+  CTableHeaderCell,
+  CTableRow,
 } from '@coreui/react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import CIcon from '@coreui/icons-react'
-import { cilSave } from '@coreui/icons'
-import { Controller, useForm } from 'react-hook-form'
+import {
+  cibAddthis,
+  cilPencil,
+  cilReportSlash,
+  cilSave,
+  cilTrash,
+  cilWarning,
+  cilXCircle,
+} from '@coreui/icons'
+import { useForm } from 'react-hook-form'
 import Swal from 'sweetalert2'
 import ResponseError from '../../../components/ResponseError'
 import reportAPI from '../../../api/reportAPI'
 import { useDispatch, useSelector } from 'react-redux'
 import provinceAPI from '../../../api/provinceAPI'
 import companyAPI from '../../../api/companyAPI'
-import Select from 'react-select'
 import { useNavigate } from 'react-router-dom'
+import { v4 as uuidv4 } from 'uuid'
 
 const AddReport = ({ visible, closeModal, token, refetch }) => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const users_id = useSelector((state) => state.user.users_id)
+  const fileInputRef = useRef(null)
 
+  // Local state
+  const [dataPayload, setDataPayload] = useState([])
+  const [selectedFiles, setSelectedFiles] = useState([])
+  const [editingIndex, setEditingIndex] = useState(null)
+  const [isCooperation, setIsCooperation] = useState(false)
+
+  // years options memoized
   const currentYear = new Date().getFullYear()
   const startYear = 2000
-
-  const years = []
-  for (let y = currentYear; y >= startYear; y--) {
-    years.push({ label: y, value: y })
-  }
+  const years = useMemo(() => {
+    const out = []
+    for (let y = currentYear; y >= startYear; y--) out.push({ label: y, value: y })
+    return out
+  }, [currentYear])
 
   const {
     register,
     handleSubmit,
     getValues,
+    setValue,
     reset,
-    control,
+    resetField,
+    watch,
     formState: { errors },
   } = useForm({
     defaultValues: {
       users_id: users_id,
       year: '',
       quarter: '',
+      // keep files default blank — we manage files via selectedFiles
+      files: '',
       site_name: '',
       permission: '',
       province: '',
@@ -80,6 +107,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
     },
   })
 
+  // load options
   const { data: provinceOptions = [] } = useQuery({
     queryKey: ['province-options'],
     queryFn: async () => {
@@ -113,42 +141,240 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
       })
       refetch()
       closeModal()
-      reset()
+      resetAll()
     },
     onError: (err) => {
       ResponseError(err, dispatch, navigate)
     },
   })
 
-  const onSubmit = () => {
+  // ----------- Helpers -----------
+  const resetAll = () => {
+    reset({
+      users_id: users_id,
+      year: '',
+      quarter: '',
+      files: '',
+      site_name: '',
+      permission: '',
+      province: '',
+      activity: '',
+      contract_time: '',
+      contract_value: '',
+      contract_value_currency: 'Rp',
+      contract_realization: '',
+      contract_realization_currency: 'Rp',
+      investation: '',
+      investation_currency: 'Rp',
+      receive_nation: '',
+      receive_nation_currency: 'Rp',
+      receive_country: '',
+      receive_country_currency: 'Rp',
+      expend_local: '',
+      expend_local_currency: 'Rp',
+      expend_national: '',
+      expend_national_currency: 'Rp',
+      expend_import: '',
+      expend_import_currency: 'Rp',
+      workforce_local: '',
+      workforce_national: '',
+      workforce_foreign_role: '',
+      workforce_foreign_qty: '',
+      pic: '',
+      pic_letter_no: '',
+      pic_letter_date: '',
+    })
+    setSelectedFiles([])
+    setEditingIndex(null)
+
+    if (fileInputRef.current) fileInputRef.current.value = null
+  }
+
+  // Build payload item from current form values + selectedFiles (clone files)
+  const buildPayloadItemFromForm = () => {
+    const values = getValues()
+    // Use selectedFiles if present; otherwise values.files can be used (but we prefer selectedFiles)
+    const files = selectedFiles && selectedFiles.length > 0 ? [...selectedFiles] : []
+    return {
+      ...values,
+      files,
+    }
+  }
+
+  const handleNoCooperation = () => {
+    setIsCooperation((prev) => {
+      const next = !prev
+
+      const current = getValues()
+
+      reset(
+        {
+          users_id: current.users_id,
+          year: current.year,
+          quarter: current.quarter,
+
+          files: null,
+          site_name: next ? 'Tidak ada kerja sama' : null,
+          permission: null,
+          province: null,
+          activity: null,
+          contract_time: null,
+
+          contract_value: 0,
+          contract_value_currency: 'Rp',
+          contract_realization: 0,
+          contract_realization_currency: 'Rp',
+
+          investation: 0,
+          investation_currency: 'Rp',
+
+          receive_nation: 0,
+          receive_nation_currency: 'Rp',
+
+          receive_country: 0,
+          receive_country_currency: 'Rp',
+
+          expend_local: 0,
+          expend_local_currency: 'Rp',
+
+          expend_national: 0,
+          expend_national_currency: 'Rp',
+
+          expend_import: 0,
+          expend_import_currency: 'Rp',
+
+          workforce_local: 0,
+          workforce_national: 0,
+          workforce_foreign_role: null,
+          workforce_foreign_qty: 0,
+
+          pic: null,
+          pic_letter_no: null,
+          pic_letter_date: null,
+        },
+        {
+          keepErrors: true,
+        },
+      )
+
+      return next
+    })
+  }
+
+  // Add or update entry in payload
+  const handleAddOrUpdatePayload = () => {
+    const item = buildPayloadItemFromForm()
+
+    if (editingIndex === null) {
+      // add
+      setDataPayload((prev) => [...prev, item])
+    } else {
+      // update existing index
+      setDataPayload((prev) => {
+        const next = [...prev]
+        // preserve old files if user didn't choose new ones
+        const oldFiles = next[editingIndex]?.files || []
+        next[editingIndex] = {
+          ...item,
+          files: item.files.length > 0 ? item.files : oldFiles,
+        }
+        return next
+      })
+    }
+    setIsCooperation(false)
+    // clear form
+    resetAll()
+  }
+
+  const handleEdit = (index) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    const detail = dataPayload[index]
+
+    Object.entries(detail).forEach(([key, value]) => {
+      if (key === 'files') return
+      setValue(key, value)
+    })
+
+    setSelectedFiles(detail.files ? [...detail.files] : [])
+    setEditingIndex(index)
+  }
+
+  // Delete item
+  const handleDelete = (index) => {
     Swal.fire({
-      title: 'Yakin data sudah benar?',
+      title: 'Hapus data ini?',
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
       confirmButtonText: 'Ya',
       cancelButtonText: 'Tidak',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const data = getValues()
-
-        const formData = new FormData()
-
-        Object.keys(data).forEach((key) => {
-          formData.append(key, data[key])
-        })
-
-        // 🚀 Append multiple files
-        for (let i = 0; i < data.files.length; i++) {
-          formData.append('files', data.files[i]) // same key name "files"
-        }
-
-        createReport({ token, payload: formData, dispatch, navigate })
+    }).then((res) => {
+      if (res.isConfirmed) {
+        setDataPayload((prev) => prev.filter((_, i) => i !== index))
       }
     })
   }
 
+  // File input change handler: capture FileList into selectedFiles (array)
+  const onFileChange = (e) => {
+    const files = e.target.files ? Array.from(e.target.files) : []
+    setSelectedFiles(files)
+    // keep RHF value too so getValues() has something (not required but harmless)
+    setValue('files', e.target.files)
+  }
+
+  // Prepare and submit final form to API
+  const onSubmit = () => {
+    // Basic validation: ensure at least one payload entry
+    if (!dataPayload || dataPayload.length === 0) {
+      Swal.fire({ title: 'Tambahkan minimal 1 data site', icon: 'warning' })
+      return
+    }
+
+    Swal.fire({
+      title: 'Yakin data sudah benar?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Ya',
+      cancelButtonText: 'Tidak',
+    }).then((result) => {
+      if (!result.isConfirmed) return
+
+      const formData = new FormData()
+      const payloadWithoutFiles = dataPayload.map((item) => {
+        const tempId = uuidv4()
+        const copy = { ...item }
+        copy.temp_id = tempId
+        copy.files = (copy.files || []).map((f) => ({ name: f.name, size: f.size, type: f.type }))
+        return copy
+      })
+      formData.append('payload', JSON.stringify(payloadWithoutFiles))
+
+      dataPayload.forEach((item, idx) => {
+        const tempId = payloadWithoutFiles[idx].temp_id
+
+        ;(item.files || []).forEach((file) => {
+          formData.append(`files[${tempId}]`, file)
+        })
+      })
+
+      // Finally call mutation
+      createReport({ token, payload: formData, dispatch, navigate })
+    })
+  }
+
+  // small helper to show file names for a payload item
+  const renderFileNames = (files) => {
+    if (!files || files.length === 0) return null
+    return (
+      <div style={{ fontSize: 12 }}>
+        {files.map((f, i) => (
+          <div key={i}>{f.name}</div>
+        ))}
+      </div>
+    )
+  }
+
+  // ----------- JSX ----------
   return (
     <CModal
       className="custom-modal"
@@ -163,8 +389,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
           <CRow className="mb-3">
             <CCol md={4}>
               <CFormLabel>Tahun</CFormLabel>
-              <CFormSelect options={years} {...register('year', { required: true })} />
-              {errors.year && <span className="text-danger">Isi tahun terlebih dahulu</span>}
+              <CFormSelect options={years} {...register('year')} />
             </CCol>
             <CCol md={4}>
               <CFormLabel>Triwulan</CFormLabel>
@@ -180,44 +405,54 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
             </CCol>
             <CCol md={4} className="mb-3">
               <CFormLabel>Lampiran (Hanya Pdf)</CFormLabel>
-              <CFormInput type="file" multiple accept=".pdf, .xls, .xlsx" {...register('files')} />
+              <CFormInput
+                type="file"
+                ref={fileInputRef}
+                accept=".pdf, .xls, .xlsx"
+                onChange={onFileChange}
+                multiple
+                disabled={isCooperation}
+              />
+              {/* Show selected file(s) name(s) */}
+              {editingIndex !== null && editingIndex !== undefined && selectedFiles.length > 0 && (
+                <div style={{ fontSize: 12, marginTop: 6 }}>
+                  {selectedFiles.map((f, i) => (
+                    <div key={i}>File yang sudah terupload : {f.name}</div>
+                  ))}
+                </div>
+              )}
             </CCol>
           </CRow>
+
           {/* ------ REPORT DETAILS ------ */}
           <div className="detail-section">
-            <div className="section-title text-center">Form Report</div>
+            <div className="section-title text-center">
+              {editingIndex === null ? 'Tambah' : 'Edit'} Form Report
+            </div>
             <hr />
             <CRow>
               {/* Row 1 */}
-              <CCol md={3} className="mb-3">
+              <CCol className="mb-3">
                 <CFormLabel>Nama Site / Nama IUP</CFormLabel>
                 <CFormSelect
                   options={companyOptions}
-                  {...register('site_name', { required: true })}
+                  {...register('site_name')}
+                  disabled={isCooperation}
                 />
-                {/* <Controller
-                  name="site_name"
-                  control={control}
-                  rules={{
-                    validate: (value) =>
-                      value?.value === '' ? 'Pilih site terlebih dahulu' : true,
-                  }}
-                  render={({ field, fieldState }) => (
-                    <>
-                      <Select
-                        {...field}
-                        options={companyOptions}
-                        onChange={(selected) => field.onChange(selected)}
-                      />
-                      {fieldState.error && (
-                        <p style={{ color: 'red' }}>{fieldState.error.message}</p>
-                        // <span className="text-danger">This field is required</span>
-                      )}
-                    </>
-                  )}
-                /> */}
+                <div className="d-flex align-items-center" style={{ fontSize: '10px' }}>
+                  <CIcon
+                    icon={cilWarning}
+                    className="me-1 text-danger"
+                    style={{ width: '10px', height: '10px' }}
+                  />
+                  <p className="text-danger m-0">
+                    Apabila nama site/IUP tidak ada dalam sistem, silakan menghubungi +62
+                    815-4236-1978
+                  </p>
+                </div>
               </CCol>
-              <CCol md={3} className="mb-3">
+
+              <CCol className="mb-3">
                 <CFormLabel>Jenis Izin</CFormLabel>
                 <CFormSelect
                   options={[
@@ -226,17 +461,28 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                     { label: 'PKP2B', value: 'PKP2B' },
                     { label: 'KK', value: 'KK' },
                   ]}
-                  {...register(`permission`)}
+                  {...register('permission')}
+                  disabled={isCooperation}
                 />
               </CCol>
-              <CCol md={3} className="mb-3">
+            </CRow>
+
+            <CRow>
+              <CCol className="mb-3">
                 <CFormLabel>Provinsi</CFormLabel>
-                <CFormSelect options={provinceOptions} {...register(`province`)} />
+                <CFormSelect
+                  options={provinceOptions}
+                  {...register('province')}
+                  disabled={isCooperation}
+                />
               </CCol>
-              <CCol md={3} className="mb-3">
+
+              <CCol className="mb-3">
                 <CFormLabel>Kegiatan</CFormLabel>
-                <CFormInput {...register(`activity`)} />
+                <CFormInput {...register('activity')} disabled={isCooperation} />
               </CCol>
+
+              {/* Contract header */}
               <CRow className="d-flex align-items-center my-3">
                 <CCol xs={5}>
                   <hr />
@@ -248,11 +494,13 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                   <hr />
                 </CCol>
               </CRow>
+
               {/* Row 2 */}
               <CCol md={3} className="mb-3">
                 <CFormLabel>Masa Kontrak</CFormLabel>
-                <CFormInput {...register(`contract_time`)} />
+                <CFormInput type="date" {...register('contract_time')} disabled={isCooperation} />
               </CCol>
+
               <CCol md={3} className="mb-3">
                 <CFormLabel>Nilai Kontrak (Rp/USD)</CFormLabel>
                 <CInputGroup>
@@ -262,25 +510,23 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                       { value: 'USD', label: 'USD' },
                     ]}
                     {...register('contract_value_currency')}
+                    disabled={isCooperation}
                     style={{
                       maxWidth: '90px',
                       borderTopRightRadius: 0,
                       borderBottomRightRadius: 0,
                     }}
                   />
-
-                  {/* Value Input */}
                   <CFormInput
                     type="number"
                     placeholder="Masukkan nilai"
                     {...register('contract_value')}
-                    style={{
-                      borderTopLeftRadius: 0,
-                      borderBottomLeftRadius: 0,
-                    }}
+                    disabled={isCooperation}
+                    style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                   />
                 </CInputGroup>
               </CCol>
+
               <CCol md={3} className="mb-3">
                 <CFormLabel>Realisasi (Rp/USD)</CFormLabel>
                 <CInputGroup>
@@ -290,25 +536,23 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                       { value: 'USD', label: 'USD' },
                     ]}
                     {...register('contract_realization_currency')}
+                    disabled={isCooperation}
                     style={{
                       maxWidth: '90px',
                       borderTopRightRadius: 0,
                       borderBottomRightRadius: 0,
                     }}
                   />
-
-                  {/* Value Input */}
                   <CFormInput
                     type="number"
                     placeholder="Masukkan nilai"
-                    {...register(`contract_realization`)}
-                    style={{
-                      borderTopLeftRadius: 0,
-                      borderBottomLeftRadius: 0,
-                    }}
+                    {...register('contract_realization')}
+                    disabled={isCooperation}
+                    style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                   />
                 </CInputGroup>
               </CCol>
+
               <CCol md={3} className="mb-3">
                 <CFormLabel>Investasi (Rp/USD)</CFormLabel>
                 <CInputGroup>
@@ -318,25 +562,24 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                       { value: 'USD', label: 'USD' },
                     ]}
                     {...register('investation_currency')}
+                    disabled={isCooperation}
                     style={{
                       maxWidth: '90px',
                       borderTopRightRadius: 0,
                       borderBottomRightRadius: 0,
                     }}
                   />
-
-                  {/* Value Input */}
                   <CFormInput
                     type="number"
                     placeholder="Masukkan nilai"
-                    {...register(`investation`)}
-                    style={{
-                      borderTopLeftRadius: 0,
-                      borderBottomLeftRadius: 0,
-                    }}
+                    {...register('investation')}
+                    disabled={isCooperation}
+                    style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                   />
                 </CInputGroup>
               </CCol>
+
+              {/* Penerimaan header */}
               <CRow className="d-flex align-items-center my-3">
                 <CCol xs={5}>
                   <hr />
@@ -348,6 +591,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                   <hr />
                 </CCol>
               </CRow>
+
               {/* Row 3 */}
               <CCol md={6} className="mb-3">
                 <CFormLabel>Penerimaan Negara (Rp/USD)</CFormLabel>
@@ -358,25 +602,23 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                       { value: 'USD', label: 'USD' },
                     ]}
                     {...register('receive_nation_currency')}
+                    disabled={isCooperation}
                     style={{
                       maxWidth: '90px',
                       borderTopRightRadius: 0,
                       borderBottomRightRadius: 0,
                     }}
                   />
-
-                  {/* Value Input */}
                   <CFormInput
                     type="number"
                     placeholder="Masukkan nilai"
-                    {...register(`receive_nation`)}
-                    style={{
-                      borderTopLeftRadius: 0,
-                      borderBottomLeftRadius: 0,
-                    }}
+                    {...register('receive_nation')}
+                    disabled={isCooperation}
+                    style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                   />
                 </CInputGroup>
               </CCol>
+
               <CCol md={6} className="mb-3">
                 <CFormLabel>Penerimaan Daerah (Rp/USD)</CFormLabel>
                 <CInputGroup>
@@ -386,25 +628,24 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                       { value: 'USD', label: 'USD' },
                     ]}
                     {...register('receive_country_currency')}
+                    disabled={isCooperation}
                     style={{
                       maxWidth: '90px',
                       borderTopRightRadius: 0,
                       borderBottomRightRadius: 0,
                     }}
                   />
-
-                  {/* Value Input */}
                   <CFormInput
                     type="number"
                     placeholder="Masukkan nilai"
-                    {...register(`receive_country`)}
-                    style={{
-                      borderTopLeftRadius: 0,
-                      borderBottomLeftRadius: 0,
-                    }}
+                    {...register('receive_country')}
+                    disabled={isCooperation}
+                    style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                   />
                 </CInputGroup>
               </CCol>
+
+              {/* Pembelanjaan header */}
               <CRow className="d-flex align-items-center my-3">
                 <CCol xs={5}>
                   <hr />
@@ -416,6 +657,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                   <hr />
                 </CCol>
               </CRow>
+
               {/* Row 4 */}
               <CCol md={4} className="mb-3">
                 <CFormLabel>Pembelanjaan Lokal (Rp/USD)</CFormLabel>
@@ -426,25 +668,23 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                       { value: 'USD', label: 'USD' },
                     ]}
                     {...register('expend_local_currency')}
+                    disabled={isCooperation}
                     style={{
                       maxWidth: '90px',
                       borderTopRightRadius: 0,
                       borderBottomRightRadius: 0,
                     }}
                   />
-
-                  {/* Value Input */}
                   <CFormInput
                     type="number"
                     placeholder="Masukkan nilai"
-                    {...register(`expend_local`)}
-                    style={{
-                      borderTopLeftRadius: 0,
-                      borderBottomLeftRadius: 0,
-                    }}
+                    {...register('expend_local')}
+                    disabled={isCooperation}
+                    style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                   />
                 </CInputGroup>
               </CCol>
+
               <CCol md={4} className="mb-3">
                 <CFormLabel>Pembelanjaan Nasional (Rp/USD)</CFormLabel>
                 <CInputGroup>
@@ -454,25 +694,23 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                       { value: 'USD', label: 'USD' },
                     ]}
                     {...register('expend_national_currency')}
+                    disabled={isCooperation}
                     style={{
                       maxWidth: '90px',
                       borderTopRightRadius: 0,
                       borderBottomRightRadius: 0,
                     }}
                   />
-
-                  {/* Value Input */}
                   <CFormInput
                     type="number"
                     placeholder="Masukkan nilai"
-                    {...register(`expend_national`)}
-                    style={{
-                      borderTopLeftRadius: 0,
-                      borderBottomLeftRadius: 0,
-                    }}
+                    {...register('expend_national')}
+                    disabled={isCooperation}
+                    style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                   />
                 </CInputGroup>
               </CCol>
+
               <CCol md={4} className="mb-3">
                 <CFormLabel>Pembelanjaan Impor (Rp/USD)</CFormLabel>
                 <CInputGroup>
@@ -482,25 +720,24 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                       { value: 'USD', label: 'USD' },
                     ]}
                     {...register('expend_import_currency')}
+                    disabled={isCooperation}
                     style={{
                       maxWidth: '90px',
                       borderTopRightRadius: 0,
                       borderBottomRightRadius: 0,
                     }}
                   />
-
-                  {/* Value Input */}
                   <CFormInput
                     type="number"
                     placeholder="Masukkan nilai"
-                    {...register(`expend_import`)}
-                    style={{
-                      borderTopLeftRadius: 0,
-                      borderBottomLeftRadius: 0,
-                    }}
+                    {...register('expend_import')}
+                    disabled={isCooperation}
+                    style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                   />
                 </CInputGroup>
               </CCol>
+
+              {/* Tenaga Kerja header */}
               <CRow className="d-flex align-items-center my-3">
                 <CCol xs={5}>
                   <hr />
@@ -512,23 +749,38 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                   <hr />
                 </CCol>
               </CRow>
+
               {/* Row 5 */}
               <CCol md={3} className="mb-3">
                 <CFormLabel>Tenaga Kerja Lokal</CFormLabel>
-                <CFormInput type="number" {...register(`workforce_local`)} />
+                <CFormInput
+                  type="number"
+                  {...register('workforce_local')}
+                  disabled={isCooperation}
+                />
               </CCol>
               <CCol md={3} className="mb-3">
                 <CFormLabel>Tenaga Kerja Nasional</CFormLabel>
-                <CFormInput type="number" {...register(`workforce_national`)} />
+                <CFormInput
+                  type="number"
+                  {...register('workforce_national')}
+                  disabled={isCooperation}
+                />
               </CCol>
               <CCol md={3} className="mb-3">
                 <CFormLabel>Jabatan Tenaga Kerja Asing</CFormLabel>
-                <CFormInput {...register(`workforce_foreign_role`)} />
+                <CFormInput {...register('workforce_foreign_role')} disabled={isCooperation} />
               </CCol>
               <CCol md={3} className="mb-3">
                 <CFormLabel>Jumlah Tenaga Kerja Asing</CFormLabel>
-                <CFormInput type="number" {...register(`workforce_foreign_qty`)} />
+                <CFormInput
+                  type="number"
+                  {...register('workforce_foreign_qty')}
+                  disabled={isCooperation}
+                />
               </CCol>
+
+              {/* Penanggung Jawab */}
               <CRow className="d-flex align-items-center my-3">
                 <CCol xs={5}>
                   <hr />
@@ -540,28 +792,129 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                   <hr />
                 </CCol>
               </CRow>
+
               {/* Row 6 */}
               <CCol md={4} className="mb-3">
                 <CFormLabel>Nama</CFormLabel>
-                <CFormInput {...register(`pic`)} />
+                <CFormInput {...register('pic')} disabled={isCooperation} />
               </CCol>
               <CCol md={4} className="mb-3">
                 <CFormLabel>Nomor Surat Pengesahan</CFormLabel>
-                <CFormInput {...register(`pic_letter_no`)} />
+                <CFormInput {...register('pic_letter_no')} disabled={isCooperation} />
               </CCol>
               <CCol md={4} className="mb-3">
                 <CFormLabel>Tanggal Surat Pengesahan</CFormLabel>
-                <CFormInput type="date" {...register(`pic_letter_date`)} />
+                <CFormInput type="date" {...register('pic_letter_date')} disabled={isCooperation} />
               </CCol>
             </CRow>
+
             <CRow className="mt-3">
               <CCol>
-                <CButton color="success" className="text-white float-end" type="submit">
-                  <CIcon icon={cilSave} /> Simpan
+                <CButton
+                  color="danger"
+                  className="text-white float-end w-100"
+                  onClick={handleNoCooperation}
+                >
+                  <CIcon icon={isCooperation ? cilXCircle : cilReportSlash} />{' '}
+                  {isCooperation ? 'Batal' : 'Tidak ada kerja sama'}
+                </CButton>
+              </CCol>
+              <CCol>
+                <CButton
+                  color="info"
+                  className="text-white float-end w-100"
+                  onClick={handleAddOrUpdatePayload}
+                >
+                  <CIcon icon={cibAddthis} />{' '}
+                  {editingIndex === null ? 'Tambah data' : 'Update data'}
                 </CButton>
               </CCol>
             </CRow>
           </div>
+
+          {/* Payload table */}
+          <CRow className="d-flex align-items-center my-3">
+            <CCol xs={5}>
+              <hr />
+            </CCol>
+            <CCol xs={2} className="text-center fw-bold">
+              Data Site
+            </CCol>
+            <CCol xs={5}>
+              <hr />
+            </CCol>
+          </CRow>
+
+          <CRow>
+            <CCol>
+              <CTable>
+                <CTableHead>
+                  <CTableRow>
+                    <CTableHeaderCell>No.</CTableHeaderCell>
+                    <CTableHeaderCell>Nama Site / IUP</CTableHeaderCell>
+                    <CTableHeaderCell>Jenis Izin</CTableHeaderCell>
+                    <CTableHeaderCell>Provinsi</CTableHeaderCell>
+                    <CTableHeaderCell>Kegiatan</CTableHeaderCell>
+                    <CTableHeaderCell>Masa Kontrak</CTableHeaderCell>
+                    <CTableHeaderCell>Aksi</CTableHeaderCell>
+                  </CTableRow>
+                </CTableHead>
+
+                <CTableBody>
+                  {dataPayload && dataPayload.length > 0 ? (
+                    dataPayload.map((item, index) => (
+                      <CTableRow key={index}>
+                        <CTableDataCell>{index + 1}</CTableDataCell>
+                        <CTableDataCell>{item.site_name}</CTableDataCell>
+                        <CTableDataCell>{item.permission || '-'}</CTableDataCell>
+                        <CTableDataCell>{item.province || '-'}</CTableDataCell>
+                        <CTableDataCell>{item.activity || '-'}</CTableDataCell>
+                        <CTableDataCell>{item.contract_time || '-'}</CTableDataCell>
+                        <CTableDataCell>
+                          <div className="d-flex gap-1 align-items-center">
+                            {item.permission && (
+                              <CButton
+                                color="warning"
+                                className="text-white"
+                                size="sm"
+                                onClick={() => handleEdit(index)}
+                              >
+                                <CIcon icon={cilPencil} />
+                              </CButton>
+                            )}
+                            <CButton
+                              color="danger"
+                              className="text-white"
+                              size="sm"
+                              onClick={() => handleDelete(index)}
+                            >
+                              <CIcon icon={cilTrash} />
+                            </CButton>
+                          </div>
+                          {/* show file name(s) below actions */}
+                          <div style={{ marginTop: 6 }}>{renderFileNames(item.files)}</div>
+                        </CTableDataCell>
+                      </CTableRow>
+                    ))
+                  ) : (
+                    <CTableRow>
+                      <CTableDataCell colSpan={7} className="text-center">
+                        Data Kosong
+                      </CTableDataCell>
+                    </CTableRow>
+                  )}
+                </CTableBody>
+              </CTable>
+            </CCol>
+          </CRow>
+
+          <CRow className="mt-3">
+            <CCol>
+              <CButton color="success" className="text-white float-end" type="submit">
+                <CIcon icon={cilSave} /> Simpan
+              </CButton>
+            </CCol>
+          </CRow>
         </CForm>
       </CModalBody>
     </CModal>

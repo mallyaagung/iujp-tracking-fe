@@ -37,7 +37,8 @@
     "redux": "5.0.1",
     "redux-persist": "^6.0.0",
     "simplebar-react": "^3.3.2",
-    "sweetalert2": "^11.26.3"
+    "sweetalert2": "^11.26.3",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.0",

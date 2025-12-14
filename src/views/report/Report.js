@@ -48,8 +48,8 @@ const Report = () => {
     sortType: 'asc',
   })
   const [date, setDate] = useState({
-    dateFrom: moment().startOf('day').format('YYYY-MM-DD'),
-    dateTo: moment().endOf('day').format('YYYY-MM-DD'),
+    dateFrom: moment().startOf('day'),
+    dateTo: moment().endOf('day'),
   })
 
   const [visible, setVisible] = useState({
@@ -232,7 +232,7 @@ const Report = () => {
                 name="dateFrom"
                 max={moment().format('YYYY-MM-DD')}
                 min={'1900-01-01'}
-                defaultValue={date.dateFrom}
+                defaultValue={date.dateFrom.format('YYYY-MM-DD')}
                 onChange={(e) => handleChangeDate(e)}
               />
             </CCol>
@@ -243,8 +243,8 @@ const Report = () => {
                 onKeyDown={(e) => e.preventDefault()}
                 name="dateTo"
                 max={moment().format('YYYY-MM-DD')}
-                min={date.dateFrom}
-                defaultValue={date.dateTo}
+                min={date.dateFrom.format('YYYY-MM-DD')}
+                defaultValue={date.dateTo.format('YYYY-MM-DD')}
                 onChange={(e) => handleChangeDate(e)}
               />
             </CCol>
@@ -342,7 +342,7 @@ const Report = () => {
           </CRow>
           <CRow>
             <CCol>
-              {dataReport?.meta && (
+              {dataReport?.meta.pageCount > 0 && (
                 <nav className="d-flex justify-content-between mt-5">
                   <div>
                     <label style={{ fontSize: 15 }}>
