@@ -289,7 +289,7 @@ const Report = () => {
                       <CTableHeaderCell>No.</CTableHeaderCell>
                       {role === 'ADMIN' && (
                         <>
-                          <CTableHeaderCell>Nama User</CTableHeaderCell>
+                          <CTableHeaderCell>Nama Perusahaan</CTableHeaderCell>
                         </>
                       )}
                       <CTableHeaderCell>Nama Site / IUP</CTableHeaderCell>
@@ -308,7 +308,7 @@ const Report = () => {
                           <CTableDataCell>{index + 1}</CTableDataCell>
                           {role === 'ADMIN' && (
                             <>
-                              <CTableDataCell>{item.username}</CTableDataCell>
+                              <CTableDataCell>{item.company_name}</CTableDataCell>
                             </>
                           )}
                           <CTableDataCell>{item.site_name}</CTableDataCell>
