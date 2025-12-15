@@ -232,7 +232,7 @@ const Report = () => {
                 name="dateFrom"
                 max={moment().format('YYYY-MM-DD')}
                 min={'1900-01-01'}
-                defaultValue={date.dateFrom.format('YYYY-MM-DD')}
+                defaultValue={moment(date.dateFrom).format('YYYY-MM-DD')}
                 onChange={(e) => handleChangeDate(e)}
               />
             </CCol>
@@ -243,8 +243,8 @@ const Report = () => {
                 onKeyDown={(e) => e.preventDefault()}
                 name="dateTo"
                 max={moment().format('YYYY-MM-DD')}
-                min={date.dateFrom.format('YYYY-MM-DD')}
-                defaultValue={date.dateTo.format('YYYY-MM-DD')}
+                min={moment(date.dateFrom).format('YYYY-MM-DD')}
+                defaultValue={moment(date.dateTo).format('YYYY-MM-DD')}
                 onChange={(e) => handleChangeDate(e)}
               />
             </CCol>
