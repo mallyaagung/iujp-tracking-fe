@@ -435,7 +435,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
               <CCol className="mb-3">
                 <CFormLabel>Nama Site / Nama IUP</CFormLabel>
                 <CFormSelect
-                  options={companyOptions}
+                  options={[{ value: '', label: '-' }, ...companyOptions]}
                   {...register('site_name')}
                   disabled={isCooperation}
                 />
@@ -471,7 +471,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
               <CCol className="mb-3">
                 <CFormLabel>Provinsi</CFormLabel>
                 <CFormSelect
-                  options={provinceOptions}
+                  options={[{ value: '', label: '-' }, ...provinceOptions]}
                   {...register('province')}
                   disabled={isCooperation}
                 />
