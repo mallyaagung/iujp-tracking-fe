@@ -8,6 +8,7 @@ import {
   CCol,
   CFormInput,
   CFormLabel,
+  CFormSelect,
   CRow,
   CSpinner,
   CTable,
@@ -47,9 +48,31 @@ const Report = () => {
     sort: 'createdAt',
     sortType: 'asc',
   })
-  const [date, setDate] = useState({
-    dateFrom: moment().startOf('day'),
-    dateTo: moment().endOf('day'),
+
+  const currentYear = new Date().getFullYear()
+  const month = new Date().getMonth() + 1
+  const startYear = 2000
+
+  const years = []
+  for (let y = currentYear; y >= startYear; y--) {
+    years.push({ label: y, value: y })
+  }
+
+  const quarter = Math.ceil(month / 3)
+  let romanQuarter = ''
+  if (quarter === 1) {
+    romanQuarter = 'I'
+  } else if (quarter === 2) {
+    romanQuarter = 'II'
+  } else if (quarter === 3) {
+    romanQuarter = 'III'
+  } else if (quarter === 4) {
+    romanQuarter = 'IV'
+  }
+
+  const [filter, setFilter] = useState({
+    year: currentYear,
+    quarter: romanQuarter,
   })
 
   const [visible, setVisible] = useState({
@@ -66,14 +89,14 @@ const Report = () => {
     refetch: refetchAllReport,
     isLoading: isLoadingAllReport,
   } = useQuery({
-    queryKey: ['all-report', sorting, pagination, date, DebounceSearch],
+    queryKey: ['all-report', sorting, pagination, filter, DebounceSearch],
     queryFn: async () => {
       try {
         return await reportAPI.getAllReport({
           token,
           ...sorting,
           ...pagination,
-          ...date,
+          ...filter,
           id: encode(user_id),
           search: DebounceSearch,
         })
@@ -125,17 +148,13 @@ const Report = () => {
     }))
   }
 
-  const handleChangeDate = (e) => {
+  const handleFilter = (e) => {
     const { name, value } = e.target
 
-    setDate({
-      ...date,
+    setFilter({
+      ...filter,
       [name]: value,
     })
-    setPagination((prev) => ({
-      ...prev,
-      currentPage: 1,
-    }))
   }
 
   const handleSearch = (e) => {
@@ -224,28 +243,27 @@ const Report = () => {
         </CCardHeader>
         <CCardBody>
           <CRow className="mb-3">
-            <CCol md={3}>
-              <CFormLabel>Tanggal Awal</CFormLabel>
-              <CFormInput
-                type="date"
-                onKeyDown={(e) => e.preventDefault()}
-                name="dateFrom"
-                max={moment().format('YYYY-MM-DD')}
-                min={'1900-01-01'}
-                defaultValue={moment(date.dateFrom).format('YYYY-MM-DD')}
-                onChange={(e) => handleChangeDate(e)}
+            <CCol>
+              <CFormLabel>Tahun</CFormLabel>
+              <CFormSelect
+                name="year"
+                options={years}
+                value={filter.year}
+                onChange={(e) => handleFilter(e)}
               />
             </CCol>
-            <CCol md={3}>
-              <CFormLabel>Tanggal Akhir</CFormLabel>
-              <CFormInput
-                type="date"
-                onKeyDown={(e) => e.preventDefault()}
-                name="dateTo"
-                max={moment().format('YYYY-MM-DD')}
-                min={moment(date.dateFrom).format('YYYY-MM-DD')}
-                defaultValue={moment(date.dateTo).format('YYYY-MM-DD')}
-                onChange={(e) => handleChangeDate(e)}
+            <CCol>
+              <CFormLabel>Triwulan</CFormLabel>
+              <CFormSelect
+                name="quarter"
+                options={[
+                  { label: 'I', value: 'I' },
+                  { label: 'II', value: 'II' },
+                  { label: 'III', value: 'III' },
+                  { label: 'IV', value: 'IV' },
+                ]}
+                value={filter.quarter}
+                onChange={(e) => handleFilter(e)}
               />
             </CCol>
             <CCol md={3}>

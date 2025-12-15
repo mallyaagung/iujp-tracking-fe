@@ -9,13 +9,13 @@ const reportAPI = {
     pageSize,
     currentPage,
     id,
-    dateTo,
-    dateFrom,
+    year,
+    quarter,
     search,
   }) => {
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_APP_API_URL}/report/all?id=${id}&sort=${sort}&sortType=${sortType}&pageSize=${pageSize}&currentPage=${currentPage}&dateTo=${dateTo}&dateFrom=${dateFrom}&search=${search}`,
+        `${import.meta.env.VITE_APP_API_URL}/report/all?id=${id}&sort=${sort}&sortType=${sortType}&pageSize=${pageSize}&currentPage=${currentPage}&year=${year}&quarter=${quarter}&search=${search}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
