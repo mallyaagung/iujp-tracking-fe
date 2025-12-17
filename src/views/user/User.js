@@ -216,7 +216,7 @@ const User = () => {
                                   color="info"
                                   className="text-white"
                                   size="sm"
-                                  onClick={() => handleShowDetail(item.user_id)}
+                                  onClick={() => handleShowDetail(item.users_id)}
                                 >
                                   <CIcon icon={cilMagnifyingGlass} />
                                 </CButton>
@@ -224,7 +224,7 @@ const User = () => {
                                   color="warning"
                                   className="text-white"
                                   size="sm"
-                                  onClick={() => handleShowEdit(item.user_id)}
+                                  onClick={() => handleShowEdit(item.users_id)}
                                 >
                                   <CIcon icon={cilPencil} />
                                 </CButton>
@@ -232,7 +232,7 @@ const User = () => {
                                   color="danger"
                                   className="text-white"
                                   size="sm"
-                                  onClick={() => handleDelete(item.user_id)}
+                                  onClick={() => handleDelete(item.users_id)}
                                 >
                                   <CIcon icon={cilTrash} />
                                 </CButton>

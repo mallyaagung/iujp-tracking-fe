@@ -107,6 +107,10 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
     },
   })
 
+  const watchYear = watch('year')
+  const watchQuarter = watch('quarter')
+  const watchFile = watch('files')
+
   // load options
   const { data: provinceOptions = [] } = useQuery({
     queryKey: ['province-options'],
@@ -152,9 +156,9 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
   const resetAll = () => {
     reset({
       users_id: users_id,
-      year: '',
-      quarter: '',
-      files: '',
+      year: watchYear,
+      quarter: watchQuarter,
+      files: watchFile,
       site_name: '',
       permission: '',
       province: '',
@@ -184,10 +188,10 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
       pic_letter_no: '',
       pic_letter_date: '',
     })
-    setSelectedFiles([])
+    // setSelectedFiles([])
     setEditingIndex(null)
 
-    if (fileInputRef.current) fileInputRef.current.value = null
+    // if (fileInputRef.current) fileInputRef.current.value = null
   }
 
   // Build payload item from current form values + selectedFiles (clone files)
@@ -314,7 +318,6 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
     })
   }
 
-  // File input change handler: capture FileList into selectedFiles (array)
   const onFileChange = (e) => {
     const files = e.target.files ? Array.from(e.target.files) : []
     setSelectedFiles(files)
@@ -322,9 +325,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
     setValue('files', e.target.files)
   }
 
-  // Prepare and submit final form to API
   const onSubmit = () => {
-    // Basic validation: ensure at least one payload entry
     if (!dataPayload || dataPayload.length === 0) {
       Swal.fire({ title: 'Tambahkan minimal 1 data site', icon: 'warning' })
       return
@@ -374,12 +375,17 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
     )
   }
 
+  const handleClose = () => {
+    closeModal()
+    reset()
+  }
+
   // ----------- JSX ----------
   return (
     <CModal
       className="custom-modal"
       visible={visible}
-      onClose={closeModal}
+      onClose={handleClose}
       backdrop={'static'}
       fullscreen
     >
@@ -389,7 +395,11 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
           <CRow className="mb-3">
             <CCol md={4}>
               <CFormLabel>Tahun</CFormLabel>
-              <CFormSelect options={years} {...register('year')} />
+              <CFormSelect
+                options={years}
+                {...register('year')}
+                disabled={dataPayload?.length > 0}
+              />
             </CCol>
             <CCol md={4}>
               <CFormLabel>Triwulan</CFormLabel>
@@ -401,6 +411,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                   { label: 'IV', value: 'IV' },
                 ]}
                 {...register('quarter')}
+                disabled={dataPayload?.length > 0}
               />
             </CCol>
             <CCol md={4} className="mb-3">
@@ -411,7 +422,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                 accept=".pdf, .xls, .xlsx"
                 onChange={onFileChange}
                 multiple
-                disabled={isCooperation}
+                disabled={isCooperation || dataPayload?.length > 0}
               />
               {/* Show selected file(s) name(s) */}
               {editingIndex !== null && editingIndex !== undefined && selectedFiles.length > 0 && (
@@ -895,8 +906,6 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                               <CIcon icon={cilTrash} />
                             </CButton>
                           </div>
-                          {/* show file name(s) below actions */}
-                          <div style={{ marginTop: 6 }}>{renderFileNames(item.files)}</div>
                         </CTableDataCell>
                       </CTableRow>
                     ))

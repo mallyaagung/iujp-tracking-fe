@@ -37,16 +37,18 @@ const reportAPI = {
         },
       })
 
-      for (const item of response.data.data.files) {
-        const uint8 = new Uint8Array(item.file_buffer.data)
+      for (const item of response.data.data) {
+        for (const file of item.files) {
+          const uint8 = new Uint8Array(file.file_buffer.data)
 
-        // Convert to Blob
-        const blob = new Blob([uint8], { type: item.mime_type })
+          // Convert to Blob
+          const blob = new Blob([uint8], { type: file.mime_type })
 
-        // Create URL
-        const blobUrl = URL.createObjectURL(blob)
+          // Create URL
+          const blobUrl = URL.createObjectURL(blob)
 
-        item.url = blobUrl
+          file.url = blobUrl
+        }
       }
 
       return response.data.data

@@ -269,7 +269,7 @@ const Report = () => {
             <CCol md={3}>
               <CFormLabel>Pencarian</CFormLabel>
               <CFormInput
-                placeholder="Cari nama site"
+                placeholder="Cari nama perusahaan"
                 type="text"
                 value={search}
                 onChange={(e) => handleSearch(e)}
@@ -287,16 +287,8 @@ const Report = () => {
                   <CTableHead>
                     <CTableRow>
                       <CTableHeaderCell>No.</CTableHeaderCell>
-                      {role === 'ADMIN' && (
-                        <>
-                          <CTableHeaderCell>Nama Perusahaan</CTableHeaderCell>
-                        </>
-                      )}
-                      <CTableHeaderCell>Nama Site / IUP</CTableHeaderCell>
-                      <CTableHeaderCell>Jenis Izin</CTableHeaderCell>
-                      <CTableHeaderCell>Provinsi</CTableHeaderCell>
-                      <CTableHeaderCell>Triwulan</CTableHeaderCell>
-                      <CTableHeaderCell>Tahun</CTableHeaderCell>
+                      <CTableHeaderCell>Nama Perusahaan</CTableHeaderCell>
+                      <CTableHeaderCell>Jumlah Site</CTableHeaderCell>
                       <CTableHeaderCell>Aksi</CTableHeaderCell>
                     </CTableRow>
                   </CTableHead>
@@ -306,23 +298,15 @@ const Report = () => {
                       dataReport.data.map((item, index) => (
                         <CTableRow key={item.report_id || index}>
                           <CTableDataCell>{index + 1}</CTableDataCell>
-                          {role === 'ADMIN' && (
-                            <>
-                              <CTableDataCell>{item.company_name}</CTableDataCell>
-                            </>
-                          )}
-                          <CTableDataCell>{item.site_name}</CTableDataCell>
-                          <CTableDataCell>{item.permission}</CTableDataCell>
-                          <CTableDataCell>{item.province}</CTableDataCell>
-                          <CTableDataCell>{item.quarter}</CTableDataCell>
-                          <CTableDataCell>{item.year}</CTableDataCell>
+                          <CTableDataCell>{item.company_name}</CTableDataCell>
+                          <CTableDataCell>{item.report_count} Site</CTableDataCell>
                           <CTableDataCell>
                             <div className="d-flex gap-1">
                               <CButton
                                 color="info"
                                 className="text-white"
                                 size="sm"
-                                onClick={() => handleShowDetail(item.reports_id)}
+                                onClick={() => handleShowDetail(item.users_id)}
                               >
                                 <CIcon icon={cilMagnifyingGlass} />
                               </CButton>

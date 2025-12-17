@@ -231,8 +231,47 @@ table.table thead tr th {
   top: 0;
   background-color: #948979;
   color: #ffffff;
-  border: none;
+  border: 1px solid white;
+  text-align: center;
+  vertical-align: middle;
 }
+
+.table-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+  max-height: 70vh;          /* optional vertical scroll */
+}
+
+.report-table {
+  table-layout: fixed !important;       /* REQUIRED */
+  border-collapse: separate;
+  border-spacing: 0;
+  width: max-content !important;
+}
+
+.report-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #948979;
+  color: #fff;
+  text-align: center;
+  vertical-align: middle;
+  border: 1px solid #fff;
+}
+
+.report-table th,
+.report-table td {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Handle stacked sticky rows */
+.report-table thead tr:nth-child(1) th { top: 0; }
+.report-table thead tr:nth-child(2) th { top: 42px; }
+.report-table thead tr:nth-child(3) th { top: 84px; }
+
 
 //MODAL
 .custom-modal {
