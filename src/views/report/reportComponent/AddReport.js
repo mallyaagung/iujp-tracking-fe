@@ -497,7 +497,7 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
 
               {/* Row 2 */}
               <CCol md={3} className="mb-3">
-                <CFormLabel>Masa Kontrak</CFormLabel>
+                <CFormLabel>Tanggal Berakhir Kontrak</CFormLabel>
                 <CFormInput type="date" {...register('contract_time')} disabled={isCooperation} />
               </CCol>
 
@@ -851,11 +851,13 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                 <CTableHead>
                   <CTableRow>
                     <CTableHeaderCell>No.</CTableHeaderCell>
+                    <CTableHeaderCell>Tahun</CTableHeaderCell>
+                    <CTableHeaderCell>Triwulan</CTableHeaderCell>
                     <CTableHeaderCell>Nama Site / IUP</CTableHeaderCell>
                     <CTableHeaderCell>Jenis Izin</CTableHeaderCell>
                     <CTableHeaderCell>Provinsi</CTableHeaderCell>
                     <CTableHeaderCell>Kegiatan</CTableHeaderCell>
-                    <CTableHeaderCell>Masa Kontrak</CTableHeaderCell>
+                    <CTableHeaderCell>Tanggal Berakhir Kontrak</CTableHeaderCell>
                     <CTableHeaderCell>Aksi</CTableHeaderCell>
                   </CTableRow>
                 </CTableHead>
@@ -865,6 +867,8 @@ const AddReport = ({ visible, closeModal, token, refetch }) => {
                     dataPayload.map((item, index) => (
                       <CTableRow key={index}>
                         <CTableDataCell>{index + 1}</CTableDataCell>
+                        <CTableDataCell>{item.year}</CTableDataCell>
+                        <CTableDataCell>{item.quarter}</CTableDataCell>
                         <CTableDataCell>{item.site_name}</CTableDataCell>
                         <CTableDataCell>{item.permission || '-'}</CTableDataCell>
                         <CTableDataCell>{item.province || '-'}</CTableDataCell>

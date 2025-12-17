@@ -207,8 +207,8 @@ const Dashboard = () => {
                   exportReport({
                     token,
                     payload: activeTab === 1 ? { status: true } : { status: false },
-                    years: currentYear,
-                    quarter: romanQuarter,
+                    years: filter.year,
+                    quarter: filter.quarter,
                     dispatch,
                     navigate,
                   })

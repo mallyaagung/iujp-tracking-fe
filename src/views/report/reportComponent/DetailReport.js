@@ -14,6 +14,7 @@ import reportAPI from '../../../api/reportAPI'
 import CurrencyDisplay from '../../../components/CurrencyDisplay'
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import moment from 'moment'
 
 const DetailReport = ({ id, visible, closeModal, token }) => {
   const dispatch = useDispatch()
@@ -81,8 +82,8 @@ const DetailReport = ({ id, visible, closeModal, token }) => {
 
         <CRow>
           <CCol md={3} className="mb-3">
-            <CFormLabel>Masa Kontrak</CFormLabel>
-            <CFormInput disabled value={dataReport?.contract_time} />
+            <CFormLabel>Tanggal Berakhir Kontrak</CFormLabel>
+            <CFormInput disabled value={moment(dataReport?.contract_time).format('DD-MM-YYYY')} />
           </CCol>
           <CCol md={3} className="mb-3">
             <CFormLabel>Nilai Kontrak</CFormLabel>
