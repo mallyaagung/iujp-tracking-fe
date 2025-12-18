@@ -29,29 +29,34 @@ const reportAPI = {
     }
   },
 
-  getReportById: async ({ token, id, dispatch, navigate }) => {
+  getReportById: async ({ token, id, dispatch, navigate, year, quarter }) => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_APP_API_URL}/report/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      if (id && year && quarter) {
+        const response = await axios.get(
+          `${import.meta.env.VITE_APP_API_URL}/report/${id}?year=${year}&quarter=${quarter}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
 
-      for (const item of response.data.data) {
-        for (const file of item.files) {
-          const uint8 = new Uint8Array(file.file_buffer.data)
+        for (const item of response.data.data) {
+          for (const file of item.files) {
+            const uint8 = new Uint8Array(file.file_buffer.data)
 
-          // Convert to Blob
-          const blob = new Blob([uint8], { type: file.mime_type })
+            // Convert to Blob
+            const blob = new Blob([uint8], { type: file.mime_type })
 
-          // Create URL
-          const blobUrl = URL.createObjectURL(blob)
+            // Create URL
+            const blobUrl = URL.createObjectURL(blob)
 
-          file.url = blobUrl
+            file.url = blobUrl
+          }
         }
-      }
 
-      return response.data.data
+        return response.data.data
+      }
     } catch (error) {
       ResponseError(error, dispatch, navigate)
       throw error

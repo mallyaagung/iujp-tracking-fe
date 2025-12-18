@@ -216,6 +216,8 @@ const Report = () => {
         id={reportId}
         closeModal={handleCloseDetail}
         token={token}
+        year={filter?.year || currentYear}
+        quarter={filter?.quarter || romanQuarter}
       />
 
       <EditReport

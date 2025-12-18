@@ -23,7 +23,7 @@ import { useNavigate } from 'react-router-dom'
 import moment from 'moment'
 import { addCommas } from '../../../components/FormatRp'
 
-const DetailReport = ({ id, visible, closeModal, token }) => {
+const DetailReport = ({ id, visible, closeModal, token, year, quarter }) => {
   const columnWidths = [
     '100px', // No
     '260px', // Nama Site / Nama IUP
@@ -66,12 +66,12 @@ const DetailReport = ({ id, visible, closeModal, token }) => {
     queryKey: ['report-by-id'],
     queryFn: async () => {
       try {
-        return await reportAPI.getReportById({ token, id, dispatch, navigate })
+        return await reportAPI.getReportById({ token, id, dispatch, navigate, year, quarter })
       } catch (error) {
         ResponseError(error, dispatch, navigate)
       }
     },
-    enabled: Boolean(id),
+    enabled: Boolean(id && year && quarter),
   })
 
   return (
